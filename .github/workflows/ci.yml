@@ -14,17 +14,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: '3.12'
+          auto-update-conda: true
+          python-version: 3.12
 
-      - name: Install dependencies
+      - name: Install MLflow
+        shell: bash -l {0}
         run: |
           pip install mlflow
-          pip install -r MLProject/requirements.txt
 
       - name: Run MLflow Project
+        shell: bash -l {0}
         run: |
           cd MLProject
           mlflow run .
