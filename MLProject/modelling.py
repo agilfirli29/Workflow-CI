@@ -65,62 +65,58 @@ precision = precision_score(y_test, y_pred)
 recall = recall_score(y_test, y_pred)
 f1 = f1_score(y_test, y_pred)
 
-# MLflow
-mlflow.set_experiment("FakeNewsClassification")
+# MLflow Logging
+mlflow.log_param("model_type", "Logistic Regression")
+mlflow.log_param("C", 10)
+mlflow.log_param("max_iter", 100)
 
-with mlflow.start_run():
+mlflow.log_metric("accuracy", accuracy)
+mlflow.log_metric("precision", precision)
+mlflow.log_metric("recall", recall)
+mlflow.log_metric("f1_score", f1)
 
-    mlflow.log_param("model_type", "Logistic Regression")
-    mlflow.log_param("C", 10)
-    mlflow.log_param("max_iter", 100)
+# Classification report
+report = classification_report(y_test, y_pred)
 
-    mlflow.log_metric("accuracy", accuracy)
-    mlflow.log_metric("precision", precision)
-    mlflow.log_metric("recall", recall)
-    mlflow.log_metric("f1_score", f1)
+with open("classification_report.txt", "w") as f:
+    f.write(report)
 
-    # Classification report
-    report = classification_report(y_test, y_pred)
+mlflow.log_artifact("classification_report.txt")
 
-    with open("classification_report.txt", "w") as f:
-        f.write(report)
+# Confusion Matrix
+cm = confusion_matrix(y_test, y_pred)
 
-    mlflow.log_artifact("classification_report.txt")
+plt.figure(figsize=(6, 4))
+plt.imshow(cm, cmap='Blues')
 
-    # Confusion Matrix
-    cm = confusion_matrix(y_test, y_pred)
+plt.title("Confusion Matrix")
+plt.colorbar()
 
-    plt.figure(figsize=(6, 4))
-    plt.imshow(cm, cmap='Blues')
+plt.xticks([0, 1], ["Fake", "Real"])
+plt.yticks([0, 1], ["Fake", "Real"])
 
-    plt.title("Confusion Matrix")
-    plt.colorbar()
+for i in range(len(cm)):
+    for j in range(len(cm[0])):
+        plt.text(
+            j,
+            i,
+            cm[i, j],
+            ha='center',
+            va='center',
+            color='black'
+        )
 
-    plt.xticks([0, 1], ["Fake", "Real"])
-    plt.yticks([0, 1], ["Fake", "Real"])
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
 
-    for i in range(len(cm)):
-        for j in range(len(cm[0])):
-            plt.text(
-                j,
-                i,
-                cm[i, j],
-                ha='center',
-                va='center',
-                color='black'
-            )
+plt.tight_layout()
 
-    plt.xlabel("Predicted")
-    plt.ylabel("Actual")
+plt.savefig("confusion_matrix.png")
 
-    plt.tight_layout()
+mlflow.log_artifact("confusion_matrix.png")
 
-    plt.savefig("confusion_matrix.png")
-
-    mlflow.log_artifact("confusion_matrix.png")
-
-    # Save model
-    mlflow.sklearn.log_model(model, "model")
+# Save model
+mlflow.sklearn.log_model(model, "model")
 
 print("\n===== EVALUATION =====")
 print("Accuracy :", accuracy)
